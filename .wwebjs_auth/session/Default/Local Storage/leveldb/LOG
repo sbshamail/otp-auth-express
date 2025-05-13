@@ -1,3 +1,2 @@
-2025/05/13-09:11:26.506 1579e Reusing MANIFEST /media/hamail/ext4/ubuntu/mycode/nextjs-Project/learning-concept/only-backend/whatsapp-web/.wwebjs_auth/session/Default/Local Storage/leveldb/MANIFEST-000001
-2025/05/13-09:11:26.507 1579e Recovering log #3
-2025/05/13-09:11:26.507 1579e Reusing old log /media/hamail/ext4/ubuntu/mycode/nextjs-Project/learning-concept/only-backend/whatsapp-web/.wwebjs_auth/session/Default/Local Storage/leveldb/000003.log 
+2025/05/13-10:52:28.615 5544 Creating DB D:\hamail\otp-auth-express\.wwebjs_auth\session\Default\Local Storage\leveldb since it was missing.
+2025/05/13-10:52:28.701 5544 Reusing MANIFEST D:\hamail\otp-auth-express\.wwebjs_auth\session\Default\Local Storage\leveldb/MANIFEST-000001
