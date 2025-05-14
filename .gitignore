@@ -33,8 +33,8 @@ yarn-error.log*
 # Chrome user data from puppeteer (optional)
 puppeteer_data/
 
-.wwebjs_auth
-.wwebjs_cache
+.wwebjs_auth/
+.wwebjs_cache/
 
 # VS Code settings
 .vscode/
