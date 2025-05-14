@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { generateOTP, saveOTP, verifyOTP } from "../utils/otpStore";
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
@@ -37,8 +37,17 @@ client.on("ready", () => {
 
 client.initialize();
 
-export const sendOtp = async (req: Request, res: Response): Promise<void> => {
+export const sendOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  console.log(req.body);
+  if (req.body.otp) {
+    return next();
+  }
   const { phone } = req.body;
+
   if (!phone) {
     res.status(400).json({ error: "Phone number required" });
     return;

@@ -8,6 +8,7 @@ export interface IUser extends Document {
   address: string;
   photoUrl: string;
   status: "active" | "disabled";
+  role: "1" | "2";
 }
 
 const UserSchema = new Schema<IUser>(
@@ -19,6 +20,7 @@ const UserSchema = new Schema<IUser>(
     address: { type: String, required: true },
     photoUrl: { type: String },
     status: { type: String, enum: ["active", "disabled"], default: "active" },
+    role: { type: String, enum: ["1", "2"] },
   },
   { timestamps: true }
 );
