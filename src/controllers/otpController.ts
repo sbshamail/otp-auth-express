@@ -4,11 +4,11 @@ import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 
 const client = new Client({
-  authStrategy: new LocalAuth({ clientId: "myapp" }),
-  //   authStrategy: new LocalAuth(),
-  //   puppeteer: {
-  //     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  //   },
+  // authStrategy: new LocalAuth({ clientId: "myapp" }),
+  authStrategy: new LocalAuth(),
+  puppeteer: {
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  },
 });
 client.on("loading_screen", (percent, message) => {
   console.log(`Loading: ${percent}% - ${message}`);
