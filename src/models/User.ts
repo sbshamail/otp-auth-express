@@ -6,7 +6,7 @@ export interface IUser extends Document {
   fullName: string;
   cnic?: string;
   address: string;
-  photoUrl: string;
+  photoUrl?: string;
   status: "active" | "disabled";
   role: "1" | "2";
 }
