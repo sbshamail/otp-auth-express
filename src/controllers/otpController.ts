@@ -42,7 +42,6 @@ export const sendOtp = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  console.log(req.body);
   if (req.body.otp) {
     return next();
   }
