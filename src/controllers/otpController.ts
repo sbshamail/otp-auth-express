@@ -1,51 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import { generateOTP, saveOTP, verifyOTP } from "../utils/otpStore";
-import { Client, LocalAuth } from "whatsapp-web.js";
-import qrcode from "qrcode-terminal";
 
-const client = new Client({
-  // authStrategy: new LocalAuth({ clientId: "myapp" }),
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  },
-});
-client.on("loading_screen", (percent, message) => {
-  console.log(`Loading: ${percent}% - ${message}`);
-});
-
-client.on("authenticated", () => {
-  console.log("✅ Authenticated with WhatsApp");
-});
-
-client.on("auth_failure", (msg) => {
-  console.error("❌ Authentication failure:", msg);
-});
-
-client.on("disconnected", (reason) => {
-  console.warn("⚠️ Client disconnected:", reason);
-});
-
-client.on("qr", (qr: string) => {
-  console.log("Scan this QR code with WhatsApp:");
-  qrcode.generate(qr, { small: true });
-});
-
-client.on("ready", () => {
-  console.log("✅ WhatsApp client is ready!");
-});
-
-client.initialize();
+import { initWhatsAppClient } from "../config/whatsappClient";
 
 export const sendOtp = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  console.log(req.body);
   if (req.body.otp) {
     return next();
   }
+  const client = await initWhatsAppClient();
   const { phone } = req.body;
 
   if (!phone) {

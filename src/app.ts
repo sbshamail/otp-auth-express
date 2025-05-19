@@ -1,11 +1,9 @@
 import express from "express";
-import dotenv from "dotenv";
+
 import otpRoutes from "./routes/otpRoutes";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import morgan from "morgan";
-
-dotenv.config();
 
 const app = express();
 app.use(morgan("dev"));
