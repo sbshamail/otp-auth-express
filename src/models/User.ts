@@ -9,6 +9,7 @@ export interface IUser extends Document {
   photoUrl?: string;
   status: "active" | "disabled";
   role: "1" | "2";
+  // rate
 }
 
 const UserSchema = new Schema<IUser>(

@@ -7,7 +7,7 @@ interface ILocation {
 }
 
 export interface IRide extends Document {
-  userId: mongoose.Types.ObjectId;
+  UserId: mongoose.Types.ObjectId;
   from: ILocation;
   to: ILocation;
   arrivalTime: Date;
@@ -31,7 +31,7 @@ const LocationSchema: Schema = new Schema({
 
 const RideSchema: Schema = new Schema(
   {
-    userId: { type: ObjectId, ref: "User", required: true },
+    UserId: { type: ObjectId, ref: "User", required: true },
     from: { type: LocationSchema, required: true },
     to: { type: LocationSchema, required: true },
     arrivalTime: { type: Date, required: true },
