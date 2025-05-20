@@ -4,6 +4,7 @@ import { User } from "../models/User";
 import { hashPassword } from "../utils/hash";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import { JWT_SECRET } from "../../config";
 // ✅ WhatsApp client (already initialized elsewhere)
 
 export const register = async (req: Request, res: Response): Promise<void> => {
@@ -73,11 +74,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET as string,
-      { expiresIn: "7d" }
-    );
+    const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.json({
       success: true,
