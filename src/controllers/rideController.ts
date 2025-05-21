@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { Ride } from "../models/Ride";
-import { parseToUtcDate, validateUtcOrDmyDate } from "../utils/dateFormat";
+import {
+  hasHourMin,
+  parseToUtcDate,
+  validateUtcOrDmyDate,
+} from "../utils/dateFormat";
 
 export const validateArrivalTimeMiddleware = (
   req: Request,
@@ -15,7 +19,12 @@ export const validateArrivalTimeMiddleware = (
       message: "arrivalTime must be in UTC (ISO 8601) or dd-mm-yyyy format",
     });
   }
-
+  if (!hasHourMin(arrivalTime)) {
+    return res.status(400).json({
+      success: false,
+      message: "arrivalTime must include hour and minute (e.g. 14:30)",
+    });
+  }
   const parsed = parseToUtcDate(arrivalTime);
   if (!parsed) {
     return res.status(400).json({
@@ -35,7 +44,7 @@ export const createRide = async (req: Request, res: Response) => {
     const ride = new Ride({
       ...rest,
       arrivalTime, // already parsed in middleware
-      userId: req.user._id,
+      UserId: req.user.id,
     });
 
     await ride.save();
@@ -74,7 +83,7 @@ export const updateRide = async (req: Request, res: Response) => {
 export const getAllRides = async (req: Request, res: Response) => {
   try {
     const rides = await Ride.find()
-      .populate("userId", "-password -__v")
+      .populate("UserId", "-password -__v")
       .sort({ createdAt: -1 });
 
     res.json({ success: true, rides });
@@ -85,9 +94,10 @@ export const getAllRides = async (req: Request, res: Response) => {
 };
 
 export const getRideById = async (req: Request, res: Response) => {
+  console.log(req.query);
   try {
     const ride = await Ride.findById(req.params.id).populate(
-      "userId",
+      "UserId",
       "-password -__v"
     );
 
@@ -108,7 +118,7 @@ export const deleteRide = async (req: Request, res: Response) => {
   try {
     const ride = await Ride.findOneAndDelete({
       _id: req.params.id,
-      userId: req.user._id,
+      UserId: req.user.id,
     });
 
     if (!ride) {

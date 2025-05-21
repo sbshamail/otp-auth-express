@@ -19,8 +19,8 @@ router.post(
   createRide
 );
 router.post("/update", requireSignIn, updateRide);
-router.post("/read", requireSignIn, getRideById);
-router.post("/delete", requireSignIn, deleteRide);
-router.post("/list", requireSignIn, getAllRides);
+router.get("/read/:id", getRideById);
+router.delete("/delete/:id", requireSignIn, deleteRide);
+router.get("/list", getAllRides);
 
 export default router;

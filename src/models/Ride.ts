@@ -62,5 +62,5 @@ const RideSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-const Ride = mongoose.model<IRide>("DriverRoute", RideSchema);
+const Ride = mongoose.model<IRide>("Ride", RideSchema);
 export { Ride };
