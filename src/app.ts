@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 
 import otpRoutes from "./routes/otpRoutes";
 import authRoutes from "./routes/authRoutes";
@@ -15,7 +15,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/ride", rideRoutes);
 
-app.get("/", (req, res) => {
+app.get("/", (req: Request, res: Response) => {
   res.send("Hello from Express + TypeScript + MongoDB");
 });
 

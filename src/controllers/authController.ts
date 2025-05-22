@@ -4,7 +4,7 @@ import { User } from "../models/User";
 import { hashPassword } from "../utils/hash";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { JWT_SECRET } from "../../config";
+import { JWT_SECRET } from "../config";
 // ✅ WhatsApp client (already initialized elsewhere)
 
 export const register = async (req: Request, res: Response): Promise<void> => {

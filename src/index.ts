@@ -1,7 +1,7 @@
 import app from "./app";
 import { connectDB } from "./config/db";
 import { initWhatsAppClient } from "./config/whatsappClient";
-import { db, PORT } from "../config";
+import { db, PORT } from "./config";
 
 (async () => {
   await connectDB(db);

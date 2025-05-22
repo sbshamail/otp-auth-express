@@ -14,23 +14,26 @@ export const validateArrivalTimeMiddleware = (
   const { arrivalTime } = req.body;
 
   if (!validateUtcOrDmyDate(arrivalTime)) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: "arrivalTime must be in UTC (ISO 8601) or dd-mm-yyyy format",
     });
+    return;
   }
   if (!hasHourMin(arrivalTime)) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: "arrivalTime must include hour and minute (e.g. 14:30)",
     });
+    return;
   }
   const parsed = parseToUtcDate(arrivalTime);
   if (!parsed) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: "Invalid date format for arrivalTime",
     });
+    return;
   }
 
   // Inject parsed date into req.body for controller to use
@@ -59,13 +62,14 @@ export const updateRide = async (req: Request, res: Response) => {
   try {
     const ride = await Ride.findOne({
       _id: req.params.id,
-      userId: req.user._id,
+      UserId: req.user.id,
     });
 
     if (!ride) {
-      return res
+      res
         .status(404)
         .json({ success: false, message: "Ride not found or unauthorized" });
+      return;
     }
 
     // Apply updates
@@ -94,7 +98,6 @@ export const getAllRides = async (req: Request, res: Response) => {
 };
 
 export const getRideById = async (req: Request, res: Response) => {
-  console.log(req.query);
   try {
     const ride = await Ride.findById(req.params.id).populate(
       "UserId",
@@ -102,14 +105,12 @@ export const getRideById = async (req: Request, res: Response) => {
     );
 
     if (!ride) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Ride not found" });
+      res.status(404).json({ success: false, message: "Ride not found" });
+      return;
     }
 
     res.json({ success: true, ride });
   } catch (error) {
-    console.error("Error fetching ride:", error);
     res.status(500).json({ success: false, message: "Failed to fetch ride" });
   }
 };
@@ -122,9 +123,10 @@ export const deleteRide = async (req: Request, res: Response) => {
     });
 
     if (!ride) {
-      return res
+      res
         .status(404)
         .json({ success: false, message: "Ride not found or unauthorized" });
+      return;
     }
 
     res.json({ success: true, message: "Ride deleted" });
