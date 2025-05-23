@@ -11,11 +11,11 @@
     "noEmitOnError": false,
     "forceConsistentCasingInFileNames": false,
     "moduleResolution": "node",
-    "noImplicitAny": false,
-    "paths": {
-      "@/*": ["src/*"],
-      "node-mongoose-api": ["src/@node-mongoose-api/src"]
-    }
+    "noImplicitAny": false
+    // "paths": {
+    //   "@/*": ["src/*"],
+    //   "node-mongoose-api": ["src/@node-mongoose-api/src"]
+    // }
   },
   "include": ["src", "types"],
   "exclude": ["node_modules"]

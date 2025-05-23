@@ -2,46 +2,49 @@ import { NextFunction, Request, Response } from "express";
 import { generateOTP, saveOTP, verifyOTP } from "../../utils/otpStore";
 
 import { initWhatsAppClient } from "../../config/whatsappClient";
+import { helpers } from "../../@node-mongoose-api/src";
+const { ResponseJson, handleAsync } = helpers;
+export const sendOtp = handleAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    if (req.body.otp) {
+      return next();
+    }
+    const client = await initWhatsAppClient();
+    const { phone } = req.body;
 
-export const sendOtp = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  if (req.body.otp) {
-    return next();
-  }
-  const client = await initWhatsAppClient();
-  const { phone } = req.body;
+    if (!phone) {
+      ResponseJson(res, 400, "Phone number required");
+      return;
+    }
 
-  if (!phone) {
-    res.status(400).json({ error: "Phone number required" });
-    return;
-  }
+    const otp = generateOTP();
+    saveOTP(phone, otp);
 
-  const otp = generateOTP();
-  saveOTP(phone, otp);
-
-  const formattedPhone = `${phone}@c.us`;
-
-  try {
+    const formattedPhone = `${phone}@c.us`;
     await client.sendMessage(formattedPhone, `🔐 Your OTP is: *${otp}*`);
-    res.json({ success: true, message: "OTP sent via WhatsApp" });
-  } catch (err) {
-    console.error("❌ Failed to send WhatsApp message:", err);
-    res.status(500).json({ error: "Failed to send message" });
-  }
-};
+    ResponseJson(res, 200, "OTP sent via WhatsApp");
+  },
+  "Send OTP",
+  500,
+  "Failed to send WhatsApp message"
+);
 
-export const verifyOtp = async (req: Request, res: Response) => {
-  const { phone, otp } = req.body;
-  if (!phone || !otp) {
-    res.status(400).json({ error: "Phone and OTP are required" });
-  }
-  const isValid = verifyOTP(phone, otp);
-  if (isValid) {
-    res.json({ success: true, message: "OTP verified successfully" });
-  } else {
-    res.status(401).json({ success: false, message: "Invalid or expired OTP" });
-  }
-};
+export const verifyOtp = handleAsync(
+  async (req: Request, res: Response) => {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) {
+      ResponseJson(res, 400, "Phone and OTP are required");
+    }
+    const isValid = verifyOTP(phone, otp);
+    if (isValid) {
+      ResponseJson(res, 200, "OTP verified successfully");
+      return;
+    } else {
+      ResponseJson(res, 401, "Invalid or expired OTP");
+      return;
+    }
+  },
+  "Verify OTP",
+  401,
+  "Invalid or expired OTP"
+);

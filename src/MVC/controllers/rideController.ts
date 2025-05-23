@@ -5,133 +5,102 @@ import {
   parseToUtcDate,
   validateUtcOrDmyDate,
 } from "../../utils/dateFormat";
+import { helpers } from "../../@node-mongoose-api/src";
+const { ResponseJson, handleAsync } = helpers;
 
-export const validateArrivalTimeMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const { arrivalTime } = req.body;
+export const validateArrivalTimeMiddleware = handleAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { arrivalTime } = req.body;
 
-  if (!validateUtcOrDmyDate(arrivalTime)) {
-    res.status(400).json({
-      success: false,
-      message: "arrivalTime must be in UTC (ISO 8601) or dd-mm-yyyy format",
-    });
-    return;
-  }
-  if (!hasHourMin(arrivalTime)) {
-    res.status(400).json({
-      success: false,
-      message: "arrivalTime must include hour and minute (e.g. 14:30)",
-    });
-    return;
-  }
-  const parsed = parseToUtcDate(arrivalTime);
-  if (!parsed) {
-    res.status(400).json({
-      success: false,
-      message: "Invalid date format for arrivalTime",
-    });
-    return;
-  }
-
-  // Inject parsed date into req.body for controller to use
-  req.body.arrivalTime = parsed;
-  next();
-};
-export const createRide = async (req: Request, res: Response) => {
-  try {
-    const { arrivalTime, ...rest } = req.body;
-
-    const ride = new Ride({
-      ...rest,
-      arrivalTime, // already parsed in middleware
-      UserId: req.user.id,
-    });
-
-    await ride.save();
-    res.status(201).json({ success: true, message: "Ride created", ride });
-  } catch (error) {
-    console.error("Error creating ride:", error);
-    res.status(500).json({ success: false, message: "Failed to create ride" });
-  }
-};
-
-export const updateRide = async (req: Request, res: Response) => {
-  try {
-    const ride = await Ride.findOne({
-      _id: req.params.id,
-      UserId: req.user.id,
-    });
-
-    if (!ride) {
-      res
-        .status(404)
-        .json({ success: false, message: "Ride not found or unauthorized" });
+    if (!validateUtcOrDmyDate(arrivalTime)) {
+      res.status(400).json({
+        success: false,
+        message: "arrivalTime must be in UTC (ISO 8601) or dd-mm-yyyy format",
+      });
+      return;
+    }
+    if (!hasHourMin(arrivalTime)) {
+      res.status(400).json({
+        success: false,
+        message: "arrivalTime must include hour and minute (e.g. 14:30)",
+      });
+      return;
+    }
+    const parsed = parseToUtcDate(arrivalTime);
+    if (!parsed) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid date format for arrivalTime",
+      });
       return;
     }
 
-    // Apply updates
-    Object.assign(ride, req.body);
-
-    await ride.save();
-
-    res.json({ success: true, message: "Ride updated successfully", ride });
-  } catch (error) {
-    console.error("Error updating ride:", error);
-    res.status(500).json({ success: false, message: "Failed to update ride" });
+    // Inject parsed date into req.body for controller to use
+    req.body.arrivalTime = parsed;
+    next();
   }
-};
+);
+export const createRide = handleAsync(async (req: Request, res: Response) => {
+  const { arrivalTime, ...rest } = req.body;
 
-export const getAllRides = async (req: Request, res: Response) => {
-  try {
-    const rides = await Ride.find()
-      .populate("UserId", "-password -__v")
-      .sort({ createdAt: -1 });
+  const ride = new Ride({
+    ...rest,
+    arrivalTime, // already parsed in middleware
+    UserId: req.user.id,
+  });
 
-    res.json({ success: true, rides });
-  } catch (error) {
-    console.error("Error fetching rides:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch rides" });
+  await ride.save();
+  ResponseJson(res, 201, "Ride created", ride);
+}, "Ride");
+
+export const updateRide = handleAsync(async (req: Request, res: Response) => {
+  const ride = await Ride.findOne({
+    _id: req.params.id,
+    UserId: req.user.id,
+  });
+
+  if (!ride) {
+    ResponseJson(res, 404, "Ride not found or unauthorized");
+    return;
   }
-};
 
-export const getRideById = async (req: Request, res: Response) => {
-  try {
-    const ride = await Ride.findById(req.params.id).populate(
-      "UserId",
-      "-password -__v"
-    );
+  // Apply updates
+  Object.assign(ride, req.body);
 
-    if (!ride) {
-      res.status(404).json({ success: false, message: "Ride not found" });
-      return;
-    }
+  await ride.save();
+  ResponseJson(res, 200, "Ride updated successfully", ride);
+}, "Ride Update");
 
-    res.json({ success: true, ride });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to fetch ride" });
+export const getAllRides = handleAsync(async (req: Request, res: Response) => {
+  const rides = await Ride.find()
+    .populate("UserId", "-password -__v")
+    .sort({ createdAt: -1 });
+  ResponseJson(res, 200, "Ride Found", rides);
+  res.json({ success: true, rides });
+}, "Ride Find");
+
+export const getRideById = handleAsync(async (req: Request, res: Response) => {
+  const ride = await Ride.findById(req.params.id).populate(
+    "UserId",
+    "-password -__v"
+  );
+
+  if (!ride) {
+    ResponseJson(res, 404, "Ride not found");
+    return;
   }
-};
+  ResponseJson(res, 200, "Ride found", ride);
+}, "Ride Find");
 
-export const deleteRide = async (req: Request, res: Response) => {
-  try {
-    const ride = await Ride.findOneAndDelete({
-      _id: req.params.id,
-      UserId: req.user.id,
-    });
+export const deleteRide = handleAsync(async (req: Request, res: Response) => {
+  const ride = await Ride.findOneAndDelete({
+    _id: req.params.id,
+    UserId: req.user.id,
+  });
 
-    if (!ride) {
-      res
-        .status(404)
-        .json({ success: false, message: "Ride not found or unauthorized" });
-      return;
-    }
-
-    res.json({ success: true, message: "Ride deleted" });
-  } catch (error) {
-    console.error("Error deleting ride:", error);
-    res.status(500).json({ success: false, message: "Failed to delete ride" });
+  if (!ride) {
+    ResponseJson(res, 404, "Ride not found or unauthorized");
+    return;
   }
-};
+  ResponseJson(res, 200, "Ride deleted");
+}, "Ride Delete");

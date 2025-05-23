@@ -1,4 +1,4 @@
-import { Request, RequestHandler, Response } from "express";
+import { Request, Response } from "express";
 import { verifyOTP } from "../../utils/otpStore";
 import { User } from "../models/User";
 import { hashPassword } from "../../utils/hash";
@@ -6,10 +6,9 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { JWT_SECRET } from "../../config";
 import { helpers } from "../../@node-mongoose-api/src";
-
 const { handleAsync, ResponseJson } = helpers;
 
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = handleAsync(async (req: Request, res: Response) => {
   const { phone, otp, password, fullName, cnic, address, photoUrl } = req.body;
 
   if (!verifyOTP(phone, otp)) {
@@ -35,51 +34,40 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     status: "active",
   });
 
-  try {
-    await newUser.save();
-    res
-      .status(201)
-      .json({ success: true, message: "Account registered successfully" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Registration failed" });
-  }
-};
+  await newUser.save();
+  ResponseJson(res, 201, "Account registered successfully");
+}, "User Register");
 
 export const login = handleAsync(async (req: Request, res: Response) => {
   const { phone, password } = req.body;
 
   if (!phone || !password) {
-    res
-      .status(400)
-      .json({ success: false, message: "Phone and password are required." });
+    ResponseJson(res, 400, "Phone and password are required");
+
     return;
   }
 
   const user = await User.findOne({ phone });
   if (!user) {
-    res.status(404).json({ success: false, message: "User not found." });
+    ResponseJson(res, 404, "User not found");
     return;
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    res.status(401).json({ success: false, message: "Invalid credentials." });
+    ResponseJson(res, 401, "Invalid credentials");
     return;
   }
 
   if (user.status !== "active") {
-    res.status(403).json({ success: false, message: "Account is not active." });
+    ResponseJson(res, 403, "Account is not active");
     return;
   }
 
   const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
     expiresIn: "7d",
   });
-
-  res.json({
-    success: true,
-    message: "Login successful",
+  const data = {
     token,
     user: {
       _id: user._id,
@@ -88,5 +76,6 @@ export const login = handleAsync(async (req: Request, res: Response) => {
       role: user.role,
       status: user.status,
     },
-  });
-}, "User");
+  };
+  ResponseJson(res, 200, "Login successful", data);
+}, "User Login");
