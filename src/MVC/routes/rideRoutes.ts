@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { requireSignIn, isAdmin } from "../middleware/auth";
+import { requireSignIn, isAdmin } from "../../middleware/auth";
 import {
   validateArrivalTimeMiddleware,
   createRide,

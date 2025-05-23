@@ -1,9 +1,9 @@
 import express, { Request, Response } from "express";
 
-import otpRoutes from "./routes/otpRoutes";
-import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
-import rideRoutes from "./routes/rideRoutes";
+import otpRoutes from "./MVC/routes/otpRoutes";
+import authRoutes from "./MVC/routes/authRoutes";
+import userRoutes from "./MVC/routes/userRoutes";
+import rideRoutes from "./MVC/routes/rideRoutes";
 import morgan from "morgan";
 
 const app = express();

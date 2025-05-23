@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { generateOTP, saveOTP, verifyOTP } from "../utils/otpStore";
+import { generateOTP, saveOTP, verifyOTP } from "../../utils/otpStore";
 
-import { initWhatsAppClient } from "../config/whatsappClient";
+import { initWhatsAppClient } from "../../config/whatsappClient";
 
 export const sendOtp = async (
   req: Request,

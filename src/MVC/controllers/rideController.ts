@@ -4,7 +4,7 @@ import {
   hasHourMin,
   parseToUtcDate,
   validateUtcOrDmyDate,
-} from "../utils/dateFormat";
+} from "../../utils/dateFormat";
 
 export const validateArrivalTimeMiddleware = (
   req: Request,
