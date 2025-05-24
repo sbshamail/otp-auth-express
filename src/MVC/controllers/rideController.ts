@@ -5,7 +5,7 @@ import {
   parseToUtcDate,
   validateUtcOrDmyDate,
 } from "../../utils/dateFormat";
-import { helpers } from "../../@node-mongoose/src";
+import { helpers } from "../../@node-mongoose-api/src";
 const { ResponseJson, handleAsync } = helpers;
 
 export const validateArrivalTimeMiddleware = handleAsync(

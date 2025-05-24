@@ -5,7 +5,7 @@ import { hashPassword } from "../../utils/hash";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { JWT_SECRET } from "../../config";
-import { helpers } from "../../@node-mongoose/src";
+import { helpers } from "../../@node-mongoose-api/src";
 const { handleAsync, ResponseJson } = helpers;
 
 export const register = handleAsync(async (req: Request, res: Response) => {

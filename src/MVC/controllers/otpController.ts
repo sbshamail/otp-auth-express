@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { generateOTP, saveOTP, verifyOTP } from "../../utils/otpStore";
 
 import { initWhatsAppClient } from "../../config/whatsappClient";
-import { helpers } from "../../@node-mongoose/src";
+import { helpers } from "../../@node-mongoose-api/src";
 const { ResponseJson, handleAsync } = helpers;
 export const sendOtp = handleAsync(
   async (req: Request, res: Response, next: NextFunction) => {
