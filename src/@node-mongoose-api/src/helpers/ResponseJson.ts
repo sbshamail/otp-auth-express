@@ -10,6 +10,7 @@ export const ResponseJson = (
   // Construct the Record object
   let Record: Record<string, any> = {};
   let status = code < 300 ? "SUCCESS" : "ERROR";
+  let success = code < 300 ? 1 : 0;
 
   // Add tableData to the Record object if it's provided
   if (data !== undefined) {
@@ -23,6 +24,8 @@ export const ResponseJson = (
   }
 
   // Return the response
-  return res.status(code).json({ ...Record, ...custom, status, message });
+  return res
+    .status(code)
+    .json({ ...Record, ...custom, status, success, message });
   //   return res.status(code).json({ Record,status,message});
 };
