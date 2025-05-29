@@ -12,7 +12,8 @@ export interface IRide extends Document {
   to: ILocation;
   arrivalTime: Date;
   carNumber: string;
-  carPic?: string; // optional
+  carPic: string; // optional
+  otherImages?: string[];
   carType: string;
   carName: string;
   carModel?: string;
@@ -36,7 +37,10 @@ const RideSchema: Schema = new Schema(
     to: { type: LocationSchema, required: true },
     arrivalTime: { type: Date, required: true },
     carNumber: { type: String, required: true },
-    carPic: { type: String },
+    carPic: { type: String, require: true },
+    otherImages: {
+      type: [String],
+    },
     seatsAvailable: { type: Number, required: true },
     pricePerSeat: { type: Number },
     totalPrice: { type: Number },
