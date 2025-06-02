@@ -1,7 +1,8 @@
 // middleware/auth.ts
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-
+import { helpers } from "../@node-mongoose-api/src";
+const { ResponseJson } = helpers;
 export type JwtUserPayload = {
   id: string;
   role: string;
@@ -13,7 +14,8 @@ export const requireSignIn = (
 ) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Unauthorized" });
+    ResponseJson(res, 401, "Unauthorized");
+
     return;
   }
 
@@ -27,14 +29,14 @@ export const requireSignIn = (
     req.user = decoded;
     next();
   } catch (err) {
-    res.status(403).json({ error: "Invalid token" });
+    ResponseJson(res, 403, "Invalid token");
     return;
   }
 };
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (req.user?.role !== "1") {
-    res.status(403).json({ error: "Access denied. Admins only." });
+    ResponseJson(res, 403, "Access denied. Admins only.");
     return;
   }
   next();

@@ -42,7 +42,7 @@ export const validateArrivalTimeMiddleware = handleAsync(
 );
 export const createRide = handleAsync(async (req: Request, res: Response) => {
   const { arrivalTime, ...rest } = req.body;
-
+  console.log(req.body);
   const ride = new Ride({
     ...rest,
     arrivalTime, // already parsed in middleware
