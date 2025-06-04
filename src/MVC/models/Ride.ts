@@ -10,6 +10,8 @@ export interface IRide extends Document {
   UserId: mongoose.Types.ObjectId;
   from: ILocation;
   to: ILocation;
+  fromLocation: string;
+  toLocation: string;
   arrivalTime: Date;
   carNumber: string;
   carPic: string; // optional
@@ -25,16 +27,30 @@ export interface IRide extends Document {
   createdAt: Date;
 }
 
-const LocationSchema: Schema = new Schema({
-  latitude: { type: Number, required: true },
-  longitude: { type: Number, required: true },
+// const LocationSchema: Schema = new Schema({
+//   latitude: { type: Number, required: true },
+//   longitude: { type: Number, required: true },
+// });
+const LocationSchema = new Schema({
+  type: {
+    type: String,
+    enum: ["Point"],
+    required: true,
+    default: "Point",
+  },
+  coordinates: {
+    type: [Number], // [longitude, latitude]
+    required: true,
+  },
 });
-
+LocationSchema.index({ coordinates: "2dsphere" });
 const RideSchema: Schema = new Schema(
   {
     UserId: { type: ObjectId, ref: "User", required: true },
     from: { type: LocationSchema, required: true },
     to: { type: LocationSchema, required: true },
+    fromLocation: { type: String, required: true },
+    toLocation: { type: String, required: true },
     arrivalTime: { type: Date, required: true },
     carNumber: { type: String, required: true },
     carPic: { type: String, require: true },

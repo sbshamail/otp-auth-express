@@ -41,11 +41,22 @@ export const validateArrivalTimeMiddleware = handleAsync(
   }
 );
 export const createRide = handleAsync(async (req: Request, res: Response) => {
-  const { arrivalTime, ...rest } = req.body;
+  const { arrivalTime, from, to, ...rest } = req.body;
+  const fromCoordinates = [Number(from.longitude), Number(from.latitude)]; // longitude first!
+  const toCoordinates = [Number(to.longitude), Number(to.latitude)];
+
   console.log(req.body);
   const ride = new Ride({
     ...rest,
     arrivalTime, // already parsed in middleware
+    from: {
+      type: "Point",
+      coordinates: fromCoordinates,
+    },
+    to: {
+      type: "Point",
+      coordinates: toCoordinates,
+    },
     UserId: req.user.id,
   });
 
@@ -72,12 +83,53 @@ export const updateRide = handleAsync(async (req: Request, res: Response) => {
 }, "Ride Update");
 
 export const getAllRides = handleAsync(async (req: Request, res: Response) => {
-  const rides = await Ride.find()
+  const { fromLat, fromLng, toLat, toLng, radiusfrom, radiusTo } =
+    req.query as {
+      fromLat?: Number;
+      fromLng?: Number;
+      toLat?: Number;
+      toLng?: Number;
+      radiusfrom?: Number;
+      radiusTo?: Number;
+    };
+
+  const radiusFromInMeters = Number(radiusfrom ?? 20) * 1000;
+  const radiusToInMeters = Number(radiusTo ?? 20) * 1000;
+
+  const query: any = {};
+
+  // Handle "from" location filter if both coords are present
+  if (fromLat && fromLng) {
+    query.from = {
+      $nearSphere: {
+        $geometry: {
+          type: "Point",
+          coordinates: [+fromLng, +fromLat], // [lng, lat]
+        },
+        $maxDistance: radiusFromInMeters,
+      },
+    };
+  }
+
+  // Handle "to" location filter if both coords are present
+  if (toLat && toLng) {
+    query.to = {
+      $nearSphere: {
+        $geometry: {
+          type: "Point",
+          coordinates: [+toLng, +toLat], // [lng, lat]
+        },
+        $maxDistance: radiusToInMeters,
+      },
+    };
+  }
+
+  const rides = await Ride.find(query)
     .populate("UserId", "-password -__v")
     .sort({ createdAt: -1 });
-  ResponseJson(res, 200, "Ride Found", rides);
-  res.json({ success: true, rides });
-}, "Ride Find");
+
+  ResponseJson(res, 200, "Rides found", rides);
+}, "Get All Rides");
 
 export const getRideById = handleAsync(async (req: Request, res: Response) => {
   const ride = await Ride.findById(req.params.id).populate(
