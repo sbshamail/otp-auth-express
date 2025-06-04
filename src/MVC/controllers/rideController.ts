@@ -83,6 +83,7 @@ export const updateRide = handleAsync(async (req: Request, res: Response) => {
 }, "Ride Update");
 
 export const getAllRides = handleAsync(async (req: Request, res: Response) => {
+  console.log(req.query);
   const { fromLat, fromLng, toLat, toLng, radiusfrom, radiusTo } =
     req.query as {
       fromLat?: Number;
