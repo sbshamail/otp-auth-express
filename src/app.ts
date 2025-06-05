@@ -9,6 +9,7 @@ import morgan from "morgan";
 const app = express();
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", otpRoutes);
 app.use("/api/auth", authRoutes);

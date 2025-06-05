@@ -81,6 +81,8 @@ const RideSchema: Schema = new Schema(
   },
   { timestamps: true }
 );
+RideSchema.index({ from: "2dsphere" });
+RideSchema.index({ to: "2dsphere" });
 
 const Ride = mongoose.model<IRide>("Ride", RideSchema);
 export { Ride };

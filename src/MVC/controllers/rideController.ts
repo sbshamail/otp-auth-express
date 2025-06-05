@@ -82,8 +82,22 @@ export const updateRide = handleAsync(async (req: Request, res: Response) => {
   ResponseJson(res, 200, "Ride updated successfully", ride);
 }, "Ride Update");
 
+function getDistanceFromLatLng(lat1, lng1, lat2, lng2) {
+  const R = 6371e3; // meters
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // in meters
+}
+
 export const getAllRides = handleAsync(async (req: Request, res: Response) => {
-  console.log(req.query);
   const { fromLat, fromLng, toLat, toLng, radiusfrom, radiusTo } =
     req.query as {
       fromLat?: Number;
@@ -96,12 +110,11 @@ export const getAllRides = handleAsync(async (req: Request, res: Response) => {
 
   const radiusFromInMeters = Number(radiusfrom ?? 20) * 1000;
   const radiusToInMeters = Number(radiusTo ?? 20) * 1000;
-
   const query: any = {};
 
   // Handle "from" location filter if both coords are present
   if (fromLat && fromLng) {
-    query.from = {
+    query["from.coordinates"] = {
       $nearSphere: {
         $geometry: {
           type: "Point",
@@ -112,24 +125,23 @@ export const getAllRides = handleAsync(async (req: Request, res: Response) => {
     };
   }
 
-  // Handle "to" location filter if both coords are present
-  if (toLat && toLng) {
-    query.to = {
-      $nearSphere: {
-        $geometry: {
-          type: "Point",
-          coordinates: [+toLng, +toLat], // [lng, lat]
-        },
-        $maxDistance: radiusToInMeters,
-      },
-    };
-  }
-
-  const rides = await Ride.find(query)
+  let rides = await Ride.find(query)
     .populate("UserId", "-password -__v")
     .sort({ createdAt: -1 });
 
-  ResponseJson(res, 200, "Rides found", rides);
+  // If `toLat` and `toLng` are provided, filter manually
+  if (toLat && toLng) {
+    rides = rides.filter((ride: any) => {
+      const [lng, lat] = ride.to.coordinates;
+      const dist = getDistanceFromLatLng(+toLat, +toLng, lat, lng);
+      return dist <= radiusToInMeters;
+    });
+  }
+  if (rides.length > 0) {
+    ResponseJson(res, 200, "Rides found", rides);
+  } else {
+    ResponseJson(res, 400, "No Rides found");
+  }
 }, "Get All Rides");
 
 export const getRideById = handleAsync(async (req: Request, res: Response) => {
