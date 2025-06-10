@@ -137,6 +137,7 @@ export const getAllRides = handleAsync(async (req: Request, res: Response) => {
       return dist <= radiusToInMeters;
     });
   }
+
   if (rides.length > 0) {
     ResponseJson(res, 200, "Rides found", rides);
   } else {
