@@ -26,6 +26,7 @@ export const requireSignIn = (
       token,
       process.env.JWT_SECRET!
     ) as JwtUserPayload;
+
     req.user = decoded;
     next();
   } catch (err) {
