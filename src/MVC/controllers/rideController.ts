@@ -98,18 +98,28 @@ function getDistanceFromLatLng(lat1, lng1, lat2, lng2) {
 }
 
 export const getAllRides = handleAsync(async (req: Request, res: Response) => {
-  const { fromLat, fromLng, toLat, toLng, radiusfrom, radiusTo } =
-    req.query as {
-      fromLat?: Number;
-      fromLng?: Number;
-      toLat?: Number;
-      toLng?: Number;
-      radiusfrom?: Number;
-      radiusTo?: Number;
-    };
+  const {
+    fromLat,
+    fromLng,
+    toLat,
+    toLng,
+    radiusfrom,
+    radiusTo,
+    fromLocation,
+    toLocation,
+  } = req.query as {
+    fromLat?: Number;
+    fromLng?: Number;
+    toLat?: Number;
+    toLng?: Number;
+    radiusfrom?: Number;
+    radiusTo?: Number;
+    fromLocation?: string;
+    toLocation?: string;
+  };
 
   const radiusFromInMeters = Number(radiusfrom ?? 20) * 1000;
-  const radiusToInMeters = Number(radiusTo ?? 20) * 1000;
+  const radiusToInMeters = Number(radiusTo ?? 35) * 1000;
   const query: any = {};
 
   // Handle "from" location filter if both coords are present
@@ -124,7 +134,15 @@ export const getAllRides = handleAsync(async (req: Request, res: Response) => {
       },
     };
   }
+  // 📝 Text filter: fromLocation
+  if (fromLocation) {
+    query.fromLocation = { $regex: fromLocation, $options: "i" }; // case-insensitive match
+  }
 
+  // 📝 Text filter: toLocation
+  if (toLocation) {
+    query.toLocation = { $regex: toLocation, $options: "i" };
+  }
   let rides = await Ride.find(query)
     .populate("UserId", "-password -__v")
     .sort({ createdAt: -1 });
