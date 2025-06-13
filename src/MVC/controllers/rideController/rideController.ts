@@ -6,7 +6,7 @@ import { getDistanceFromLatLng } from "./fn";
 const { ResponseJson, handleAsync } = helpers;
 
 const model = Ride;
-const { listAggregation } = NodeMongooseApi(model);
+const { listAggregation, lookupUnwindStage } = NodeMongooseApi(model);
 
 export const createRide = handleAsync(async (req: Request, res: Response) => {
   const { arrivalTime, from, to, ...rest } = req.body;
@@ -34,9 +34,22 @@ export const createRide = handleAsync(async (req: Request, res: Response) => {
 export const getRidesByUserId = handleAsync(
   async (req: Request, res: Response) => {
     const userId = req.user.id; // assuming you’ve set `req.user` from JWT middleware
+    console.log(userId);
     const query = req.query;
-    // const customParams={}
-    const response = await listAggregation({ model, query, ids: [userId] });
+    const customParams = {
+      projectionFields: {
+        fromLocation: 1,
+        toLocation: 1,
+        UserId: { _id: 1, phone: 1, fullName: 1 },
+      },
+      lookup: [...lookupUnwindStage("users", "UserId", "_id", "UserId")],
+      searchTerms: ["UserId"],
+    };
+    const response = await listAggregation({
+      model,
+      query,
+      customParams,
+    });
     if (response) {
       const { total, data } = response;
       ResponseJson(res, 200, "Rides fetched successfully", data, total);
@@ -51,7 +64,7 @@ export const getRidesByUserId = handleAsync(
 
     // ResponseJson(res, 200, 'Rides fetched successfully', rides);
   },
-  "Get My Rides"
+  "Get Rides By UserId"
 );
 
 export const updateRide = handleAsync(async (req: Request, res: Response) => {

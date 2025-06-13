@@ -1,9 +1,13 @@
-import mongoose, { PipelineStage, ObjectId } from 'mongoose';
+import mongoose, { PipelineStage, ObjectId } from "mongoose";
 import {
   AggregationPipelineFunctionType,
-  MatchStagesTypes
-} from '../../interface/crud.operation';
-import { ColumnFilterHandler, dateStartToEnd, searching } from './matchStagesFilter';
+  MatchStagesTypes,
+} from "../../interface/crud.operation";
+import {
+  ColumnFilterHandler,
+  dateStartToEnd,
+  searching,
+} from "./matchStagesFilter";
 
 // match stage filtering aggregation
 const matchStages = ({
@@ -14,13 +18,13 @@ const matchStages = ({
   columnFilters,
   fromDate,
   toDate,
-  fieldDate
+  fieldDate,
 }: MatchStagesTypes) => {
   let matchStage: Record<string, any> = {
     ...(searchTerm && {
       $or: [
         ...(numericSearchTerms && numericSearchTerms.length > 0
-          ? numericSearchTerms.map(search => {
+          ? numericSearchTerms.map((search) => {
               const condition: Record<string, any> = {};
               condition[search] = Number(searchTerm);
               return condition;
@@ -28,17 +32,18 @@ const matchStages = ({
           : []),
 
         ...(searchTerms && searchTerms.length > 0
-          ? searchTerms.map(search => {
+          ? searchTerms.map((search) => {
               return searching(search, searchTerm);
             })
-          : [])
-      ]
+          : []),
+      ],
     }),
-    deleted: deleted
+    deleted: deleted,
   };
   if (columnFilters && columnFilters.length) {
     const columnFilterHandler = new ColumnFilterHandler(numericSearchTerms);
-    matchStage.$and = columnFilterHandler.generateColumnFilterConditions(columnFilters);
+    matchStage.$and =
+      columnFilterHandler.generateColumnFilterConditions(columnFilters);
   }
 
   if (fromDate || toDate) {
@@ -50,13 +55,13 @@ const matchStages = ({
 export const createAggregationPipeline = ({
   skip = 0,
   limit = 1000000,
-  searchTerm = '',
+  searchTerm = "",
   columnFilters,
   deleted,
-  sortField = 'updatedAt',
+  sortField = "updatedAt",
   sortOrder = -1,
   ids = [],
-  customParams
+  customParams,
 }: AggregationPipelineFunctionType) => {
   const {
     projectionFields,
@@ -65,7 +70,7 @@ export const createAggregationPipeline = ({
     fromDate,
     toDate,
     fieldDate,
-    lookup = []
+    lookup = [],
   } = customParams ?? {};
 
   const matchStage = matchStages({
@@ -76,16 +81,15 @@ export const createAggregationPipeline = ({
     fieldDate,
     fromDate,
     toDate,
-    deleted
+    deleted,
   });
-
   const dataPipeline: PipelineStage[] | any = [
     ...lookup,
     { $match: matchStage },
     {
       $facet: {
-        totalRecords: [{ $count: 'total' }],
-        extra: [{ $group: { _id: null, startDate: { $min: '$updatedAt' } } }],
+        totalRecords: [{ $count: "total" }],
+        extra: [{ $group: { _id: null, startDate: { $min: "$updatedAt" } } }],
         data: [
           {
             $match: {
@@ -95,21 +99,27 @@ export const createAggregationPipeline = ({
                       $in: ids.map(
                         (id: string | ObjectId) =>
                           new mongoose.Types.ObjectId(id as string)
-                      )
+                      ),
                     }
-                  : { $exists: true }
-            }
+                  : { $exists: true },
+            },
           },
           { $project: projectionFields },
           { $sort: { [sortField]: sortOrder } },
           { $skip: skip },
-          { $limit: limit }
-        ]
-      }
+          { $limit: limit },
+        ],
+      },
     },
-    { $unwind: '$totalRecords' },
-    { $unwind: '$extra' },
-    { $project: { total: '$totalRecords.total', data: '$data', extra: '$extra' } }
+    { $unwind: "$totalRecords" },
+    { $unwind: "$extra" },
+    {
+      $project: {
+        total: "$totalRecords.total",
+        data: "$data",
+        extra: "$extra",
+      },
+    },
   ];
 
   return dataPipeline;
