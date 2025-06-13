@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import mongoose, { ClientSession, Model, ObjectId } from 'mongoose';
+import { Request, Response } from "express";
+import mongoose, { ClientSession, Model, ObjectId } from "mongoose";
 
 interface Options {
   session?: ClientSession; // Adjust according to your session type
@@ -84,7 +84,7 @@ interface WithOwnPipeline extends BaseListAggregationType {
 // Interface when `ownPipeline` is absent, making `customParams` required
 interface WithoutOwnPipeline extends BaseListAggregationType {
   ownPipeline?: never; // Not allowed
-  customParams: CustomParamsTypeQuery; // Required
+  customParams?: CustomParamsTypeQuery; // Required
 }
 
 // Combine both interfaces into a single union type

@@ -1,51 +1,18 @@
 import { Request, Response, NextFunction } from "express";
-import { Ride } from "../models/Ride";
-import {
-  hasHourMin,
-  parseToUtcDate,
-  validateUtcOrDmyDate,
-} from "../../utils/dateFormat";
-import { helpers } from "../../@node-mongoose-api/src";
+import { Ride } from "../../models/Ride";
+
+import { helpers, NodeMongooseApi } from "../../../@node-mongoose-api/src";
+import { getDistanceFromLatLng } from "./fn";
 const { ResponseJson, handleAsync } = helpers;
 
-export const validateArrivalTimeMiddleware = handleAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { arrivalTime } = req.body;
+const model = Ride;
+const { listAggregation } = NodeMongooseApi(model);
 
-    if (!validateUtcOrDmyDate(arrivalTime)) {
-      res.status(400).json({
-        success: false,
-        message: "arrivalTime must be in UTC (ISO 8601) or dd-mm-yyyy format",
-      });
-      return;
-    }
-    if (!hasHourMin(arrivalTime)) {
-      res.status(400).json({
-        success: false,
-        message: "arrivalTime must include hour and minute (e.g. 14:30)",
-      });
-      return;
-    }
-    const parsed = parseToUtcDate(arrivalTime);
-    if (!parsed) {
-      res.status(400).json({
-        success: false,
-        message: "Invalid date format for arrivalTime",
-      });
-      return;
-    }
-
-    // Inject parsed date into req.body for controller to use
-    req.body.arrivalTime = parsed;
-    next();
-  }
-);
 export const createRide = handleAsync(async (req: Request, res: Response) => {
   const { arrivalTime, from, to, ...rest } = req.body;
   const fromCoordinates = [Number(from.longitude), Number(from.latitude)]; // longitude first!
   const toCoordinates = [Number(to.longitude), Number(to.latitude)];
 
-  console.log(req.body);
   const ride = new Ride({
     ...rest,
     arrivalTime, // already parsed in middleware
@@ -64,6 +31,29 @@ export const createRide = handleAsync(async (req: Request, res: Response) => {
   ResponseJson(res, 201, "Ride created", ride);
 }, "Ride");
 
+export const getRidesByUserId = handleAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user.id; // assuming you’ve set `req.user` from JWT middleware
+    const query = req.query;
+    // const customParams={}
+    const response = await listAggregation({ model, query, ids: [userId] });
+    if (response) {
+      const { total, data } = response;
+      ResponseJson(res, 200, "Rides fetched successfully", data, total);
+      return;
+    }
+
+    // const rides = await Ride.find({ UserId: userId }).sort({ createdAt: -1 });
+
+    // if (!rides.length) {
+    //   return ResponseJson(res, 404, 'No rides found');
+    // }
+
+    // ResponseJson(res, 200, 'Rides fetched successfully', rides);
+  },
+  "Get My Rides"
+);
+
 export const updateRide = handleAsync(async (req: Request, res: Response) => {
   const ride = await Ride.findOne({
     _id: req.params.id,
@@ -81,21 +71,6 @@ export const updateRide = handleAsync(async (req: Request, res: Response) => {
   await ride.save();
   ResponseJson(res, 200, "Ride updated successfully", ride);
 }, "Ride Update");
-
-function getDistanceFromLatLng(lat1, lng1, lat2, lng2) {
-  const R = 6371e3; // meters
-  const toRad = (deg: number) => (deg * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // in meters
-}
 
 export const getAllRides = handleAsync(async (req: Request, res: Response) => {
   const {
